@@ -145,16 +145,16 @@ struct mapa generate_map(){
 }
 
 void print_map(struct mapa m){
-    for ( int i = N ; i > 0 ; i-- ){
+    for ( int i = N-1 ; i >= 0 ; i-- ){
         int y = i - 1;
         printf("%.2d ", i);
         for ( int j = 0 ; j < N ; j++ ){
-            printf(" %s ", m.pola[j][y]);
+            printf(" %s ", m.pola[j][i]);
         }
         printf("\n");
     }
-    printf("\n   ");
-    for ( int i = 1; i <= N; i++ )
+    printf("   ");
+    for ( int i = 0; i < N; i++ )
         printf("%.2d ", i);
     printf("\n");
 }

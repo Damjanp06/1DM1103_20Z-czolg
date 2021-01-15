@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <curl/curl.h>
+#include <cjson/cJSON.h>
 
 #define N 12
 
@@ -57,7 +58,7 @@ char * make_request(char *url){
     {
         curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+        curl_easy_setopt(curl, CURLOPT_HEADER, 0L);
 
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
 
@@ -106,51 +107,29 @@ char * rotate(char *site) {
     return res;
 }
 
-struct pola get_data(char *expl){
+struct pola get_exploration_data(char *exploration_result){
     
     struct pola p;
 
-    strtok(expl, "{");
-    strtok(NULL, "{");
-    strtok(NULL, "{");
-    
-    char *firste = strtok(NULL, "}");
-    strtok(NULL, "{");
-    
-    char *seconde = strtok(NULL, "}");
-    strtok(NULL, "{");
-    
-    char *thirde = strtok(NULL, "}");
-        
-    strtok(firste, " ");
-    char *x1 = strtok(NULL, ",");
-    p.x1 = x1[0] - '0';
-    strtok(NULL, " ");
-    char *y1 = strtok(NULL, ",");
-    p.y1 = y1[0] - '0';
-    strtok(NULL, ":");
-    strtok(NULL, "\"");
-    p.type1 = strtok(NULL, "\"");
+    cJSON *exploration_json = cJSON_Parse(exploration_result);
+    cJSON *payload_json = cJSON_GetObjectItemCaseSensitive(exploration_json, "payload");
+    cJSON *list_json = cJSON_GetObjectItemCaseSensitive(payload_json, "list");
 
-    strtok(seconde, " ");
-    char *x2 = strtok(NULL, ",");
-    p.x2 = x2[0] - '0';
-    strtok(NULL, " ");
-    char *y2 = strtok(NULL, ",");
-    p.y2 = y2[0] - '0';
-    strtok(NULL, ":");
-    strtok(NULL, "\"");
-    p.type2 = strtok(NULL, "\"");
+    cJSON *pole1 = cJSON_GetArrayItem(list_json, 0);
+    cJSON *pole2 = cJSON_GetArrayItem(list_json, 1);
+    cJSON *pole3 = cJSON_GetArrayItem(list_json, 2);
 
-    strtok(thirde, " ");
-    char *x3 = strtok(NULL, ",");
-    p.x3 = x3[0] - '0';
-    strtok(NULL, " ");
-    char *y3 = strtok(NULL, ",");
-    p.y3 = y3[0] - '0';
-    strtok(NULL, ":");
-    strtok(NULL, "\"");
-    p.type3 = strtok(NULL, "\"");
+    p.x1 = cJSON_GetObjectItemCaseSensitive(pole1, "x")->valueint;
+    p.y1 = cJSON_GetObjectItemCaseSensitive(pole1, "y")->valueint;
+    p.type1 = cJSON_GetObjectItemCaseSensitive(pole1, "type")->valuestring;
+
+    p.x2 = cJSON_GetObjectItemCaseSensitive(pole2, "x")->valueint;
+    p.y2 = cJSON_GetObjectItemCaseSensitive(pole2, "y")->valueint;
+    p.type2 = cJSON_GetObjectItemCaseSensitive(pole2, "type")->valuestring;
+
+    p.x3 = cJSON_GetObjectItemCaseSensitive(pole3, "x")->valueint;
+    p.y3 = cJSON_GetObjectItemCaseSensitive(pole3, "y")->valueint;
+    p.type3 = cJSON_GetObjectItemCaseSensitive(pole3, "type")->valuestring;
 
     return p;
 }
@@ -167,6 +146,7 @@ struct mapa generate_map(){
 
 void print_map(struct mapa m){
     for ( int i = 0 ; i < N ; i++ ){
+        printf("%.2d ", i);
         for ( int j = 0 ; j < N ; j++ ){
             printf(" %s ", m.pola[j][i]);
         }
@@ -225,7 +205,7 @@ void main(int argc, char **argv)
             struct mapa m;
             printf("\nrozgladanie sie\n");
             printf("%s\n", expl);
-            p = get_data(expl);
+            p = get_exploration_data(expl);
             // printf("%d\n", p.x1);
             // printf("%d\n", p.y1);
             // printf("%s\n\n", p.type1);

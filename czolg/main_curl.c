@@ -13,10 +13,66 @@ struct pola
     int x3; int y3; char *type3;
 };
 
-struct mapa
+typedef struct
 {
-    char *pola[N][N];
-};
+    char **fields;
+    int size;
+} Map;
+
+int __max(int a, int b)
+{
+    return a > b ? a :b;
+}
+
+void initMap(Map *map, int initial_size)
+{
+    map->size = initial_size;
+    map->fields = calloc(initial_size, sizeof(char*));
+    for (int i = 0; i < map->size; i++)
+        map->fields[i] = calloc(map->size, sizeof(char));
+}
+
+void printMap(Map *map) 
+{
+    for ( int i = map->size-1 ; i >= 0 ; i-- ){
+        printf("%.2d ", i);
+        for ( int j = 0 ; j < map->size ; j++ ){
+            char field_type = *(*(map->fields + i) + j);
+            printf("%c ", field_type ? field_type : ' ');
+        }
+        printf("\n");
+    }
+    printf("\n   ");
+    for ( int i = 0; i < map->size; i++)
+        printf("%.2d ", i);
+    printf("\n");
+}
+
+void updateField(Map *map, int x, int y, char field_type)
+{
+    int new_size = __max(x, y) + 1;
+
+    if (new_size > map->size)
+    {
+        int old_size = map->size;
+        map->size = new_size;
+
+        map->fields = realloc(map->fields, map->size * sizeof(char*));
+
+        for (int i = 0; i < map->size; i++)
+        {
+            if (i < old_size){
+                map->fields[i] = realloc(map->fields[i], map->size * sizeof(char));
+                for(int j = old_size; j <= map->size; j++)
+                    map->fields[i][j] = 0;
+            }
+            else{
+                map->fields[i] = calloc(map->size, sizeof(char));
+            }
+        }
+    }
+    map->fields[x][y] = field_type;
+}
 
 typedef struct _Memory
 {
@@ -134,67 +190,33 @@ struct pola get_exploration_data(char *exploration_result){
     return p;
 }
 
-struct mapa generate_map(){
-    struct mapa m; 
-    for ( int i = 0 ; i < N ; i++ ){
-        for ( int j = 0 ; j < N ; j++ ){
-            m.pola[i][j] = " ";
-        }
-    }
-    return m;
+char __get_field_type(char *originalType)
+{
+    if(strcmp(originalType, "sand") == 0)
+        return 'S';
+
+    if(strcmp(originalType, "grass") == 0)
+        return 'G';
+
+    if(strcmp(originalType, "wall") == 0)
+        return 'W';
+
+    return '?';
 }
 
-void print_map(struct mapa m){
-    for ( int i = N-1 ; i >= 0 ; i-- ){
-        int y = i - 1;
-        printf("%.2d ", i);
-        for ( int j = 0 ; j < N ; j++ ){
-            printf(" %s ", m.pola[j][i]);
-        }
-        printf("\n");
-    }
-    printf("   ");
-    for ( int i = 0; i < N; i++ )
-        printf("%.2d ", i);
-    printf("\n");
-}
+void update_map(Map *m, struct pola p){
 
-struct mapa update_map(struct mapa m, struct pola p){
-    struct mapa mnew = m;
-    if(strcmp(p.type1, "sand") == 0){
-        mnew.pola[p.x1][p.y1] = "S";
-    }
-    else if(strcmp(p.type1, "grass") == 0){
-        mnew.pola[p.x1][p.y1] = "G";
-    }
-    else if(strcmp(p.type1, "wall") == 0){
-        mnew.pola[p.x1][p.y1] = "W";
-    }
-    if(strcmp(p.type2, "sand") == 0){
-        mnew.pola[p.x2][p.y2] = "S";
-    }
-    else if(strcmp(p.type2, "grass") == 0){
-        mnew.pola[p.x2][p.y2] = "G";
-    }
-    else if(strcmp(p.type2, "wall") == 0){
-        mnew.pola[p.x2][p.y2] = "W";
-    }
-    if(strcmp(p.type3, "sand") == 0){
-        mnew.pola[p.x3][p.y3] = "S";
-    }
-    else if(strcmp(p.type3, "grass") == 0){
-        mnew.pola[p.x3][p.y3] = "G";
-    }
-    else if(strcmp(p.type3, "wall") == 0){
-        mnew.pola[p.x3][p.y3] = "W";
-    }
-    return mnew;
+    updateField(m, p.x1, p.y1, __get_field_type(p.type1));
+    updateField(m, p.x2, p.y2, __get_field_type(p.type2));
+    updateField(m, p.x3, p.y3, __get_field_type(p.type3));
 }
 
 void main(int argc, char **argv)
 {
     struct pola p;
-    struct mapa map = generate_map();
+    Map map;
+
+    initMap(&map, 1);
 
     for(int i = 1; i < argc; i++){
         if(strcmp(argv[i], "info") == 0){
@@ -207,7 +229,6 @@ void main(int argc, char **argv)
         }
         else if(strcmp(argv[i], "e") == 0){
             char *expl = explore();
-            struct mapa m;
             printf("\nrozgladanie sie\n");
             printf("%s\n", expl);
             p = get_exploration_data(expl);
@@ -220,7 +241,7 @@ void main(int argc, char **argv)
             // printf("%d\n", p.x3);
             // printf("%d\n", p.y3);
             // printf("%s\n\n", p.type3);
-            map = update_map(map, p);
+            update_map(&map, p);
             
         }
         else if(strcmp(argv[i], "r") == 0){
@@ -231,7 +252,7 @@ void main(int argc, char **argv)
             printf("\nobrot w lewo\n");
             printf("%s\n", rotate("left"));
         }
-    print_map(map);
+    printMap(&map);
     }
 }
 

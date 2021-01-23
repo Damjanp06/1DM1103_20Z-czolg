@@ -73,7 +73,7 @@ void map_print(Map *map)
     printf("\n");
 }
 
-void map_update_field(Map *map, int x, int y, char field_type)
+void expand_map_if_required(Map *map, int x, int y)
 {
     int new_size = max(x, y) + 1;
 
@@ -97,5 +97,18 @@ void map_update_field(Map *map, int x, int y, char field_type)
             }
         }
     }
+}
+
+void map_update_field(Map *map, int x, int y, char field_type)
+{
+    expand_map_if_required(map, x, y);
     map->fields[x][y] = field_type;
+}
+
+void map_update_tank(Map *map, int x, int y, char tank_direction)
+{
+    expand_map_if_required(map, x, y);
+    map->tank.direction = tank_direction;
+    map->tank.x_tank = x;
+    map->tank.y_tank = y;
 }

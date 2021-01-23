@@ -30,8 +30,20 @@ void test_update_field()
     assert(map->fields[2][3] == 'T');
 }
 
+void test_update_tank()
+{
+    Map *map = map_create('>');
+
+    map_update_tank(map, 10, 20, 'v');
+
+    assert(map->tank.direction == 'v');
+    assert(map->tank.x_tank == 10);
+    assert(map->tank.y_tank == 20);
+}
+
 void main()
 {
     test_map_create();
     test_update_field();
+    test_update_tank();
 }

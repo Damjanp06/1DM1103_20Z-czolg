@@ -1,13 +1,35 @@
+#define LW_GRASS_FIELD "grass"
+#define LW_WALL_FIELD "wall"
+#define LW_SAND_FIELD "sand"
+
+#define LW_TANK_NORTH_DIR 'N'
+#define LW_TANK_EAST_DIR 'E'
+#define LW_TANK_SOUTH_DIR 'S'
+#define LW_TANK_WEST_DIR 'W'
+
 typedef struct
 {
-    int x1; int y1; char *type1;
-    int x2; int y2; char *type2;
-    int x3; int y3; char *type3;
+    int x;
+    int y;
+} LwCoordinates;
+
+typedef struct
+{
+    LwCoordinates coordinates; 
+    char *field_type;
+} LwField;
+
+typedef struct
+{
+    LwField field1;
+    LwField field2;
+    LwField field3;
 } LwExploration;
 
 typedef struct 
 {
     char direction;
+    LwField field;
 } LwTankPosition;
 
 

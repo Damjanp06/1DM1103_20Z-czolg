@@ -1,5 +1,3 @@
-typedef struct _Map Map;
-
 #define INITIAL_MAP_SIZE 5
 #define INITIAL_TANK_X_POS 2
 #define INITIAL_TANK_Y_POS 2
@@ -13,6 +11,9 @@ typedef struct _Map Map;
 #define MAP_TANK_SOUTH_DIR 'v'
 #define MAP_TANK_WEST_DIR '<'
 
+typedef struct _Map Map;
+
 Map* map_create(char tank_direction);
 void map_print(Map *map);
 void map_update_field(Map *map, int x, int y, char field_type); 
+void map_update_tank(Map * map, int x, int y, char tank_direction); 

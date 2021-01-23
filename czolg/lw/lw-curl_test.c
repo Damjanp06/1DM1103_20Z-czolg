@@ -6,17 +6,17 @@ void test_parse_exploration_data()
     char *exploration_result = "{\"status\": \"Success\", \"payload\": {\"list\": [{\"x\": 4, \"y\": 3, \"type\": \"grass\"}, {\"x\": 3, \"y\": 3, \"type\": \"wall\"}, {\"x\": 2, \"y\": 3, \"type\": \"sand\"}]}}";
     LwExploration exploration = parse_exploration_data(exploration_result);
 
-    assert(strcmp(exploration.type1, "grass") == 0);
-    assert(exploration.x1 == 4);
-    assert(exploration.y1 == 3);
+    assert(strcmp(exploration.field1.field_type, "grass") == 0);
+    assert(exploration.field1.coordinates.x == 4);
+    assert(exploration.field1.coordinates.y == 3);
 
-    assert(strcmp(exploration.type2, "wall") == 0);
-    assert(exploration.x2 == 3);
-    assert(exploration.y2 == 3);
+    assert(strcmp(exploration.field2.field_type, "wall") == 0);
+    assert(exploration.field2.coordinates.x == 3);
+    assert(exploration.field2.coordinates.y == 3);
 
-    assert(strcmp(exploration.type3, "sand") == 0);
-    assert(exploration.x3 == 2);
-    assert(exploration.y3 == 3);
+    assert(strcmp(exploration.field3.field_type, "sand") == 0);
+    assert(exploration.field3.coordinates.x == 2);
+    assert(exploration.field3.coordinates.y == 3);
 }
 
 void test_parse_position_data()
@@ -25,6 +25,9 @@ void test_parse_position_data()
     LwTankPosition position = parse_position_data(position_result);
 
     assert(position.direction == 'N');
+    assert(strcmp(position.field.field_type, "grass") == 0);
+    assert(position.field.coordinates.x == 3);
+    assert(position.field.coordinates.y == 2);
 }
 
 void main()

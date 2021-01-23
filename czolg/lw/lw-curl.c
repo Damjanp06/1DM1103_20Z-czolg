@@ -4,17 +4,17 @@
 #include <stdlib.h>
 #include "lw.h"
 
-#define LW_CURL_DUMP 1
+#define LW_CURL_DUMP 0
 
 #if LW_CURL_DUMP
     #include <stdio.h>
 #endif
 
-#define URL_EXPLORE "http://edi.iem.pw.edu.pl:30000/worlds/api/v1/worlds/explore/qwerty_11"
-#define URL_ROTATE_LEFT "http://edi.iem.pw.edu.pl:30000/worlds/api/v1/worlds/rotate/qwerty_11/left"
-#define URL_ROTATE_RIGHT "http://edi.iem.pw.edu.pl:30000/worlds/api/v1/worlds/rotate/qwerty_11/right"
-#define URL_INFO "http://edi.iem.pw.edu.pl:30000/worlds/api/v1/worlds/info/qwerty_11"
-#define URL_MOVE "http://edi.iem.pw.edu.pl:30000/worlds/api/v1/worlds/move/qwerty_11"
+#define URL_EXPLORE "http://edi.iem.pw.edu.pl:30000/worlds/api/v1/worlds/explore/qwerty_10"
+#define URL_ROTATE_LEFT "http://edi.iem.pw.edu.pl:30000/worlds/api/v1/worlds/rotate/qwerty_10/left"
+#define URL_ROTATE_RIGHT "http://edi.iem.pw.edu.pl:30000/worlds/api/v1/worlds/rotate/qwerty_10/right"
+#define URL_INFO "http://edi.iem.pw.edu.pl:30000/worlds/api/v1/worlds/info/qwerty_10"
+#define URL_MOVE "http://edi.iem.pw.edu.pl:30000/worlds/api/v1/worlds/move/qwerty_10"
 
 typedef struct _Memory
 {
@@ -74,6 +74,20 @@ char * make_request(char *url){
     }
 }
 
+LwField parse_position_field(cJSON *payload_json)
+{
+    LwCoordinates coordinates = {   
+                                    .x = cJSON_GetObjectItemCaseSensitive(payload_json, "current_x")->valueint, 
+                                    .y = cJSON_GetObjectItemCaseSensitive(payload_json, "current_y")->valueint
+                                };
+
+    LwField f = {   
+                    .coordinates = coordinates, 
+                    .field_type = cJSON_GetObjectItemCaseSensitive(payload_json, "field_type")->valuestring
+                };
+    return f;
+}
+
 LwTankPosition parse_position_data(char *position_result)
 { 
     cJSON *position_json = cJSON_Parse(position_result);
@@ -83,6 +97,7 @@ LwTankPosition parse_position_data(char *position_result)
 
     LwTankPosition tank_position;
     tank_position.direction = direction;
+    tank_position.field = parse_position_field(payload_json);
 
     return tank_position;
 }
@@ -97,6 +112,31 @@ LwTankPosition lw_move()
     return parse_position_data(make_request(URL_MOVE));
 }
 
+LwTankPosition lw_rotate_left() 
+{
+    return parse_position_data(make_request(URL_ROTATE_LEFT));
+}
+
+LwTankPosition lw_rotate_right() 
+{
+    return parse_position_data(make_request(URL_ROTATE_RIGHT));
+}
+
+LwField parse_exploration_field(cJSON *field_json)
+{
+    LwCoordinates coordinates = {
+        .x = cJSON_GetObjectItemCaseSensitive(field_json, "x")->valueint,
+        .y = cJSON_GetObjectItemCaseSensitive(field_json, "y")->valueint 
+    };
+    
+    LwField f = {
+        .coordinates = coordinates,
+        .field_type = cJSON_GetObjectItemCaseSensitive(field_json, "type")->valuestring
+    };
+
+    return f;
+}
+
 LwExploration parse_exploration_data(char *exploration_result)
 {
     LwExploration p;
@@ -109,33 +149,16 @@ LwExploration parse_exploration_data(char *exploration_result)
     cJSON *pole2 = cJSON_GetArrayItem(list_json, 1);
     cJSON *pole3 = cJSON_GetArrayItem(list_json, 2);
 
-    p.x1 = cJSON_GetObjectItemCaseSensitive(pole1, "x")->valueint;
-    p.y1 = cJSON_GetObjectItemCaseSensitive(pole1, "y")->valueint;
-    p.type1 = cJSON_GetObjectItemCaseSensitive(pole1, "type")->valuestring;
-
-    p.x2 = cJSON_GetObjectItemCaseSensitive(pole2, "x")->valueint;
-    p.y2 = cJSON_GetObjectItemCaseSensitive(pole2, "y")->valueint;
-    p.type2 = cJSON_GetObjectItemCaseSensitive(pole2, "type")->valuestring;
-
-    p.x3 = cJSON_GetObjectItemCaseSensitive(pole3, "x")->valueint;
-    p.y3 = cJSON_GetObjectItemCaseSensitive(pole3, "y")->valueint;
-    p.type3 = cJSON_GetObjectItemCaseSensitive(pole3, "type")->valuestring;
+    p.field1 = parse_exploration_field(pole1);
+    p.field2 = parse_exploration_field(pole2);
+    p.field3 = parse_exploration_field(pole3);
 
     return p;
 }
-
 
 LwExploration lw_explore() 
 {
     return parse_exploration_data(make_request(URL_EXPLORE));
 }
 
-LwTankPosition lw_rotate_left() 
-{
-    return parse_position_data(make_request(URL_ROTATE_LEFT));
-}
 
-LwTankPosition lw_rotate_right() 
-{
-    return parse_position_data(make_request(URL_ROTATE_RIGHT));
-}
